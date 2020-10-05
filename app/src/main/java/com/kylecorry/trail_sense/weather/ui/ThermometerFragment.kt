@@ -5,27 +5,33 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.databinding.FragmentThermometerHygrometerBinding
 import com.kylecorry.trail_sense.shared.*
-import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trailsensecore.infrastructure.system.UiUtils
 import com.kylecorry.trail_sense.weather.domain.WeatherService
 import com.kylecorry.trailsensecore.domain.weather.HeatAlert
+import com.kylecorry.trailsensecore.infrastructure.sensors.hygrometer.IHygrometer
+import com.kylecorry.trailsensecore.infrastructure.sensors.temperature.IThermometer
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ThermometerFragment : Fragment() {
 
     private var _binding: FragmentThermometerHygrometerBinding? = null
     private val binding get() = _binding!!
 
-    private val sensorService by lazy { SensorService(requireContext()) }
-    private val thermometer by lazy { sensorService.getThermometer() }
-    private val hygrometer by lazy { sensorService.getHygrometer() }
-    private val prefs by lazy { UserPreferences(requireContext()) }
-    private val formatService by lazy { FormatService(requireContext()) }
+    @Inject
+    lateinit var thermometer: IThermometer
+    @Inject
+    lateinit var hygrometer: IHygrometer
+    @Inject
+    lateinit var prefs: UserPreferences
+    @Inject
+    lateinit var formatService: FormatService
+
     private val weatherService by lazy {
         WeatherService(
             prefs.weather.stormAlertThreshold,

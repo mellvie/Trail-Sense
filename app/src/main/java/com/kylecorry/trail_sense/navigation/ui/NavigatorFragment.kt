@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.astronomy.domain.AstronomyService
@@ -16,7 +15,7 @@ import com.kylecorry.trail_sense.navigation.domain.FlashlightState
 import com.kylecorry.trail_sense.navigation.domain.NavigationService
 import com.kylecorry.trailsensecore.domain.geo.Bearing
 import com.kylecorry.trail_sense.navigation.infrastructure.database.BeaconRepo
-import com.kylecorry.trail_sense.navigation.infrastructure.flashlight.FlashlightHandler
+import com.kylecorry.trail_sense.navigation.infrastructure.flashlight.IFlashlightHandler
 import com.kylecorry.trail_sense.navigation.infrastructure.share.LocationSharesheet
 import com.kylecorry.trail_sense.shared.*
 import com.kylecorry.trailsensecore.domain.Accuracy
@@ -31,57 +30,50 @@ import com.kylecorry.trailsensecore.infrastructure.sensors.gps.IGPS
 import com.kylecorry.trailsensecore.infrastructure.system.UiUtils
 import com.kylecorry.trailsensecore.infrastructure.time.Intervalometer
 import com.kylecorry.trailsensecore.infrastructure.time.Throttle
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Duration
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class NavigatorFragment : Fragment() {
 
-    private lateinit var compass: ICompass
-    private lateinit var gps: IGPS
-    private lateinit var declinationProvider: IDeclinationProvider
-    private lateinit var orientation: DeviceOrientation
-    private lateinit var altimeter: IAltimeter
+    @Inject lateinit var compass: ICompass
+    @Inject lateinit var gps: IGPS
+    @Inject lateinit var declinationProvider: IDeclinationProvider
+    @Inject lateinit var orientation: DeviceOrientation
+    @Inject lateinit var altimeter: IAltimeter
+    @Inject lateinit var userPrefs: UserPreferences
+    @Inject lateinit var beaconRepo: BeaconRepo
+    @Inject lateinit var cache: Cache
+    @Inject lateinit var formatService: FormatService
+    @Inject lateinit var flashlight: IFlashlightHandler
 
     private lateinit var roundCompass: ICompassView
     private lateinit var linearCompass: ICompassView
-    private val userPrefs by lazy { UserPreferences(requireContext()) }
+    private lateinit var ruler: Ruler
+    private lateinit var destinationPanel: DestinationPanel
+    private lateinit var beaconIndicators: List<ImageView>
+    private lateinit var visibleCompass: ICompassView
 
     private var _binding: ActivityNavigatorBinding? = null
     private val binding get() = _binding!!
-    private lateinit var ruler: Ruler
-    private lateinit var navController: NavController
 
     private var acquiredLock = false
-
-    private lateinit var destinationPanel: DestinationPanel
-
-    private lateinit var beaconIndicators: List<ImageView>
-
-    private lateinit var visibleCompass: ICompassView
-
-    private val beaconRepo by lazy { BeaconRepo.getInstance(requireContext()) }
     private var flashlightState = FlashlightState.Off
-
-    private val sensorService by lazy { SensorService(requireContext()) }
-    private val flashlight by lazy { FlashlightHandler(requireContext()) }
-    private val cache by lazy { Cache(requireContext()) }
-    private val throttle = Throttle(16)
-
-    private val navigationService = NavigationService()
-    private val astronomyService = AstronomyService()
-    private val formatService by lazy { FormatService(requireContext()) }
-
     private var averageSpeed = 0f
-
     private lateinit var beacons: Collection<Beacon>
     private var nearbyBeacons: Collection<Beacon> = listOf()
+    private var destination: Beacon? = null
+    private var destinationBearing: Bearing? = null
+    private var useTrueNorth = false
+
+    private val throttle = Throttle(16)
+    private val navigationService = NavigationService()
+    private val astronomyService = AstronomyService()
 
     private val intervalometer = Intervalometer {
         gps.start(this::onLocationUpdate)
     }
-
-    private var destination: Beacon? = null
-    private var destinationBearing: Bearing? = null
-    private var useTrueNorth = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -111,7 +103,6 @@ class NavigatorFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ruler = Ruler(binding.ruler)
-        navController = findNavController()
 
         destinationPanel = DestinationPanel(binding.navigationSheet)
 
@@ -144,12 +135,6 @@ class NavigatorFragment : Fragment() {
         beaconIndicators[2].imageTintList =
             ColorStateList.valueOf(UiUtils.color(requireContext(), R.color.colorAccent))
 
-        compass = sensorService.getCompass()
-        orientation = sensorService.getDeviceOrientation()
-        gps = sensorService.getGPS()
-        declinationProvider = sensorService.getDeclinationProvider()
-        altimeter = sensorService.getAltimeter()
-
         averageSpeed = userPrefs.navigation.averageSpeed
 
         roundCompass = CompassView(
@@ -173,7 +158,7 @@ class NavigatorFragment : Fragment() {
 
         binding.beaconBtn.setOnClickListener {
             if (destination == null) {
-                navController.navigate(R.id.action_navigatorFragment_to_beaconListFragment)
+                findNavController().navigate(R.id.action_navigatorFragment_to_beaconListFragment)
             } else {
                 destination = null
                 cache.remove(LAST_BEACON_ID)

@@ -10,21 +10,28 @@ import com.kylecorry.trail_sense.databinding.FragmentInclinometerBinding
 import com.kylecorry.trail_sense.navigation.domain.LocationMath
 import com.kylecorry.trail_sense.shared.*
 import com.kylecorry.trail_sense.shared.sensors.DeviceOrientation
-import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trailsensecore.domain.inclinometer.AvalancheRisk
 import com.kylecorry.trailsensecore.domain.inclinometer.InclinationService
+import com.kylecorry.trailsensecore.infrastructure.sensors.inclinometer.IInclinometer
 import com.kylecorry.trailsensecore.infrastructure.time.Throttle
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class InclinometerFragment : Fragment() {
 
     private lateinit var binding: FragmentInclinometerBinding
 
-    private val sensorService by lazy { SensorService(requireContext()) }
-    private val inclinometer by lazy { sensorService.getInclinometer() }
-    private val deviceOrientation by lazy { sensorService.getDeviceOrientation() }
-    private val prefs by lazy { UserPreferences(requireContext()) }
+    @Inject
+    lateinit var inclinometer: IInclinometer
+    @Inject
+    lateinit var deviceOrientation: DeviceOrientation
+    @Inject
+    lateinit var prefs: UserPreferences
+    @Inject
+    lateinit var formatService: FormatService
+
     private val inclinationService = InclinationService()
-    private val formatService by lazy { FormatService(requireContext()) }
     private val throttle = Throttle(20)
 
     private var slopeAngle: Float? = null
@@ -44,7 +51,8 @@ class InclinometerFragment : Fragment() {
             } else {
                 null
             }
-            binding.inclineLock.visibility = if (slopeAngle != null) View.VISIBLE else View.INVISIBLE
+            binding.inclineLock.visibility =
+                if (slopeAngle != null) View.VISIBLE else View.INVISIBLE
         }
 
     }

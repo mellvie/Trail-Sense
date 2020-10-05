@@ -16,23 +16,26 @@ import androidx.navigation.fragment.findNavController
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.databinding.FragmentBeaconListBinding
 import com.kylecorry.trail_sense.navigation.infrastructure.database.BeaconRepo
-import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trailsensecore.domain.navigation.Beacon
 import com.kylecorry.trailsensecore.domain.navigation.BeaconGroup
 import com.kylecorry.trailsensecore.domain.navigation.IBeacon
+import com.kylecorry.trailsensecore.infrastructure.sensors.gps.IGPS
 import com.kylecorry.trailsensecore.infrastructure.view.ListView
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class BeaconListFragment : Fragment() {
 
-    private val beaconRepo by lazy { BeaconRepo.getInstance(requireContext()) }
-    private val gps by lazy { sensorService.getGPS() }
+    @Inject lateinit var beaconRepo: BeaconRepo
+    @Inject lateinit var gps: IGPS
 
     private var _binding: FragmentBeaconListBinding? = null
     private val binding get() = _binding!!
-    private lateinit var beaconList: ListView<IBeacon>
+
     private lateinit var navController: NavController
-    private val sensorService by lazy { SensorService(requireContext()) }
+    private lateinit var beaconList: ListView<IBeacon>
+
     private var displayedGroup: BeaconGroup? = null
 
     override fun onCreateView(
@@ -142,7 +145,7 @@ class BeaconListFragment : Fragment() {
 
     private fun updateBeaconListItem(itemView: View, beacon: IBeacon) {
         if (beacon is Beacon) {
-            val listItem = BeaconListItem(itemView, beacon, gps.location)
+            val listItem = BeaconListItem(itemView, beacon, beaconRepo, gps.location)
             listItem.onEdit = {
                 val bundle = bundleOf("edit_beacon" to beacon.id)
                 navController.navigate(
@@ -160,7 +163,7 @@ class BeaconListFragment : Fragment() {
                 updateBeaconList()
             }
         } else if (beacon is BeaconGroup) {
-            val listItem = BeaconGroupListItem(itemView, beacon)
+            val listItem = BeaconGroupListItem(itemView, beacon, beaconRepo)
             listItem.onDeleted = {
                 updateBeaconList()
             }

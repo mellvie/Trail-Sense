@@ -23,7 +23,6 @@ import com.kylecorry.trailsensecore.infrastructure.system.NotificationUtils
 import com.kylecorry.trail_sense.weather.domain.WeatherService
 import com.kylecorry.trail_sense.weather.infrastructure.WeatherNotificationService
 import com.kylecorry.trail_sense.weather.infrastructure.WeatherUpdateScheduler
-import com.kylecorry.trail_sense.weather.infrastructure.WeatherUpdateWorker
 import com.kylecorry.trail_sense.weather.infrastructure.database.PressureRepo
 import com.kylecorry.trailsensecore.domain.weather.PressureAltitudeReading
 import com.kylecorry.trailsensecore.domain.weather.Weather
@@ -31,16 +30,23 @@ import com.kylecorry.trailsensecore.infrastructure.sensors.altimeter.IAltimeter
 import com.kylecorry.trailsensecore.infrastructure.sensors.barometer.IBarometer
 import com.kylecorry.trailsensecore.infrastructure.sensors.temperature.IThermometer
 import com.kylecorry.trailsensecore.infrastructure.time.Intervalometer
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Duration
 import java.time.Instant
 import java.time.ZonedDateTime
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class WeatherUpdateService : Service() {
 
-    private lateinit var barometer: IBarometer
+    @Inject
+    lateinit var barometer: IBarometer
     private lateinit var altimeter: IAltimeter
-    private lateinit var thermometer: IThermometer
-    private lateinit var sensorService: SensorService
+    @Inject
+    lateinit var thermometer: IThermometer
+    @Inject
+    lateinit var sensorService: SensorService
+
     private val timeout = Intervalometer {
         if (!hasAltitude || !hasTemperatureReading || !hasBarometerReading) {
             hasAltitude = true
@@ -57,13 +63,13 @@ class WeatherUpdateService : Service() {
 
     private lateinit var userPrefs: UserPreferences
     private lateinit var weatherService: WeatherService
-    private lateinit var pressureRepo: PressureRepo
+    @Inject
+    lateinit var pressureRepo: PressureRepo
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(TAG, "Started at ${ZonedDateTime.now()}")
         acquireWakelock()
         userPrefs = UserPreferences(applicationContext)
-        pressureRepo = PressureRepo.getInstance(applicationContext)
         weatherService = WeatherService(
             userPrefs.weather.stormAlertThreshold,
             userPrefs.weather.dailyForecastChangeThreshold,
@@ -72,10 +78,7 @@ class WeatherUpdateService : Service() {
             userPrefs.weather.seaLevelFactorInTemp
         )
 
-        sensorService = SensorService(applicationContext)
-        barometer = sensorService.getBarometer()
         altimeter = sensorService.getAltimeter(true)
-        thermometer = sensorService.getThermometer()
 
         scheduleNextUpdate()
 

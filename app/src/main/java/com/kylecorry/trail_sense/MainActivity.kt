@@ -24,10 +24,12 @@ import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.weather.infrastructure.WeatherUpdateScheduler
 import com.kylecorry.trailsensecore.infrastructure.persistence.Cache
 import com.kylecorry.trailsensecore.infrastructure.system.*
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Duration
+import javax.inject.Inject
 import kotlin.system.exitProcess
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
@@ -35,9 +37,11 @@ class MainActivity : AppCompatActivity() {
 
     private var geoIntentLocation: GeoUriParser.NamedCoordinate? = null
 
-    private lateinit var userPrefs: UserPreferences
+    @Inject
+    lateinit var userPrefs: UserPreferences
     private lateinit var disclaimer: DisclaimerMessage
-    private val cache by lazy { Cache(this) }
+    @Inject
+    lateinit var cache: Cache
 
     private val permissions = mutableListOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -56,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ExceptionUtils.onUncaughtException(Duration.ofMinutes(1)){
+        ExceptionUtils.onUncaughtException(Duration.ofMinutes(1)) {
             UiUtils.alertWithCancel(
                 this@MainActivity,
                 getString(R.string.error_occurred),
@@ -76,8 +80,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        super.onCreate(savedInstanceState)
 
-        userPrefs = UserPreferences(this)
         val mode = when (userPrefs.theme) {
             UserPreferences.Theme.Light -> AppCompatDelegate.MODE_NIGHT_NO
             UserPreferences.Theme.Dark -> AppCompatDelegate.MODE_NIGHT_YES
@@ -85,7 +89,6 @@ class MainActivity : AppCompatActivity() {
             UserPreferences.Theme.System -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
         }
         AppCompatDelegate.setDefaultNightMode(mode)
-        super.onCreate(savedInstanceState)
 
         disclaimer = DisclaimerMessage(this)
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
@@ -135,10 +138,10 @@ class MainActivity : AppCompatActivity() {
             geoIntentLocation = namedCoordinate
             bottomNavigation.selectedItemId = R.id.action_navigation
             if (namedCoordinate != null) {
-                val bundle =  bundleOf("initial_location" to MyNamedCoordinate.from(namedCoordinate))
+                val bundle = bundleOf("initial_location" to MyNamedCoordinate.from(namedCoordinate))
                 navController.navigate(
                     R.id.place_beacon,
-                   bundle
+                    bundle
                 )
             }
         }

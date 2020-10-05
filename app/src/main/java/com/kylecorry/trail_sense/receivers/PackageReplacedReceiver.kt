@@ -6,8 +6,15 @@ import android.content.Intent
 import com.kylecorry.trail_sense.astronomy.infrastructure.receivers.SunsetAlarmReceiver
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.weather.infrastructure.WeatherUpdateScheduler
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class PackageReplacedReceiver : BroadcastReceiver() {
+
+    @Inject
+    lateinit var prefs: UserPreferences
+
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action == Intent.ACTION_PACKAGE_REPLACED && context != null) {
             startWeatherMonitoring(context)
@@ -16,7 +23,6 @@ class PackageReplacedReceiver : BroadcastReceiver() {
     }
 
     private fun startWeatherMonitoring(context: Context) {
-        val prefs = UserPreferences(context)
         if (prefs.weather.shouldMonitorWeather) {
             WeatherUpdateScheduler.start(context)
         } else {

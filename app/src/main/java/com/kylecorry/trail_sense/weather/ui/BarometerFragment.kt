@@ -24,20 +24,31 @@ import com.kylecorry.trailsensecore.infrastructure.sensors.altimeter.IAltimeter
 import com.kylecorry.trailsensecore.infrastructure.sensors.barometer.IBarometer
 import com.kylecorry.trailsensecore.infrastructure.sensors.temperature.IThermometer
 import com.kylecorry.trailsensecore.infrastructure.time.Throttle
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Duration
 import java.time.Instant
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class BarometerFragment : Fragment() {
 
-    private lateinit var barometer: IBarometer
-    private lateinit var altimeter: IAltimeter
-    private lateinit var thermometer: IThermometer
+    @Inject
+    lateinit var barometer: IBarometer
+    @Inject
+    lateinit var altimeter: IAltimeter
+    @Inject
+    lateinit var thermometer: IThermometer
+    @Inject
+    lateinit var prefs: UserPreferences
+    @Inject
+    lateinit var formatService: FormatService
+    @Inject
+    lateinit var pressureRepo: PressureRepo
 
     private var altitude = 0F
     private var useSeaLevelPressure = false
     private var units = PressureUnits.Hpa
 
-    private lateinit var prefs: UserPreferences
 
     private var _binding: ActivityWeatherBinding? = null
     private val binding get() = _binding!!
@@ -46,10 +57,7 @@ class BarometerFragment : Fragment() {
     private lateinit var navController: NavController
 
     private lateinit var weatherService: WeatherService
-    private lateinit var sensorService: SensorService
     private val unitService = UnitService()
-    private val formatService by lazy { FormatService(requireContext()) }
-    private val pressureRepo by lazy { PressureRepo.getInstance(requireContext()) }
 
     private val throttle = Throttle(20)
 
@@ -60,13 +68,7 @@ class BarometerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        sensorService = SensorService(requireContext())
         navController = findNavController()
-
-        barometer = sensorService.getBarometer()
-        altimeter = sensorService.getAltimeter()
-        thermometer = sensorService.getThermometer()
-        prefs = UserPreferences(requireContext())
 
         weatherService = WeatherService(
             prefs.weather.stormAlertThreshold,

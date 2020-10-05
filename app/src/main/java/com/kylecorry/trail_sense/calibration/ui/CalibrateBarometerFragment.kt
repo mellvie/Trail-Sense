@@ -14,13 +14,16 @@ import com.kylecorry.trailsensecore.infrastructure.sensors.altimeter.IAltimeter
 import com.kylecorry.trailsensecore.infrastructure.sensors.barometer.IBarometer
 import com.kylecorry.trailsensecore.infrastructure.sensors.temperature.IThermometer
 import com.kylecorry.trailsensecore.infrastructure.time.Throttle
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
+@AndroidEntryPoint
 class CalibrateBarometerFragment : PreferenceFragmentCompat() {
 
     private lateinit var prefs: UserPreferences
-    private lateinit var sensorService: SensorService
+    @Inject lateinit var sensorService: SensorService
     private val throttle = Throttle(20)
 
     private lateinit var pressureTxt: Preference
@@ -41,7 +44,6 @@ class CalibrateBarometerFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.barometer_calibration, rootKey)
 
         prefs = UserPreferences(requireContext())
-        sensorService = SensorService(requireContext())
         units = prefs.pressureUnits
 
         barometer = sensorService.getBarometer()

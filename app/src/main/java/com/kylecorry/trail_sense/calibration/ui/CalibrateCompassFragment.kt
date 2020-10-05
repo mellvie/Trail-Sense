@@ -12,12 +12,14 @@ import com.kylecorry.trailsensecore.domain.Accuracy
 import com.kylecorry.trailsensecore.infrastructure.sensors.compass.ICompass
 import com.kylecorry.trailsensecore.infrastructure.sensors.declination.DeclinationProvider
 import com.kylecorry.trailsensecore.infrastructure.time.Throttle
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class CalibrateCompassFragment : PreferenceFragmentCompat() {
 
     private lateinit var prefs: UserPreferences
-    private lateinit var sensorService: SensorService
+    @Inject lateinit var sensorService: SensorService
     private val throttle = Throttle(20)
 
     private lateinit var azimuthTxt: Preference
@@ -40,7 +42,6 @@ class CalibrateCompassFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.compass_calibration, rootKey)
 
         prefs = UserPreferences(requireContext())
-        sensorService = SensorService(requireContext())
 
         compass = sensorService.getCompass()
         declinationProvider = sensorService.getDeclinationProvider()

@@ -24,11 +24,14 @@ import com.kylecorry.trailsensecore.infrastructure.system.UiUtils
 import com.kylecorry.trailsensecore.infrastructure.sensors.declination.IDeclinationProvider
 import com.kylecorry.trailsensecore.infrastructure.time.Intervalometer
 import com.kylecorry.trailsensecore.infrastructure.view.ListView
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
+@AndroidEntryPoint
 class AstronomyFragment : Fragment() {
 
     private lateinit var gps: IGPS
@@ -43,7 +46,7 @@ class AstronomyFragment : Fragment() {
 
     private lateinit var sunTimesMode: SunTimesMode
 
-    private val sensorService by lazy { SensorService(requireContext()) }
+    @Inject lateinit var sensorService: SensorService
     private val prefs by lazy { UserPreferences(requireContext()) }
     private val cache by lazy { Cache(requireContext()) }
     private val astronomyService = AstronomyService()

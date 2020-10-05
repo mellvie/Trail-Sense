@@ -5,26 +5,30 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.databinding.FragmentLevelBinding
 import com.kylecorry.trail_sense.shared.FormatService
-import com.kylecorry.trail_sense.shared.sensors.DeviceOrientation
+import com.kylecorry.trail_sense.shared.sensors.IOrientationSensor
 import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trailsensecore.infrastructure.time.Throttle
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlin.math.abs
 
+@AndroidEntryPoint
 class LevelFragment : Fragment() {
 
-    private val sensorService by lazy { SensorService(requireContext()) }
-    private val formatService by lazy { FormatService(requireContext()) }
-    private val orientationSensor by lazy { sensorService.getOrientationSensor() }
+    @Inject
+    lateinit var sensorService: SensorService
+
+    @Inject
+    lateinit var formatService: FormatService
+
+    @Inject
+    lateinit var orientationSensor: IOrientationSensor
+
     private var _binding: FragmentLevelBinding? = null
     private val binding get() = _binding!!
     private val throttle = Throttle(20)
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,7 +55,7 @@ class LevelFragment : Fragment() {
 
     private fun onOrientationUpdate(): Boolean {
 
-        if (throttle.isThrottled()){
+        if (throttle.isThrottled()) {
             return true
         }
 
@@ -66,7 +70,6 @@ class LevelFragment : Fragment() {
         binding.angleY2.text = formatService.formatDegrees(abs(y))
         binding.bubbleOutline.x = binding.root.width / 2f - binding.bubbleOutline.width / 2f
         binding.bubbleOutline.y = binding.root.height / 2f - binding.bubbleOutline.height / 2f
-
         return true
     }
 

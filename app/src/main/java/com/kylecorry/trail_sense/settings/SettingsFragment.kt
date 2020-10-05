@@ -7,53 +7,35 @@ import android.view.View
 import androidx.annotation.ArrayRes
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
-import androidx.core.content.edit
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.preference.*
 import com.kylecorry.trail_sense.R
-import com.kylecorry.trail_sense.astronomy.infrastructure.receivers.SunsetAlarmReceiver
-import com.kylecorry.trail_sense.shared.FormatService
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trailsensecore.infrastructure.sensors.SensorChecker
-import com.kylecorry.trailsensecore.domain.units.DistanceUnits
 import com.kylecorry.trailsensecore.domain.units.PressureUnits
-import com.kylecorry.trailsensecore.domain.units.UnitService
 import com.kylecorry.trailsensecore.infrastructure.system.IntentUtils
 import com.kylecorry.trailsensecore.infrastructure.system.PackageUtils
-import com.kylecorry.trailsensecore.infrastructure.time.Intervalometer
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SettingsFragment : PreferenceFragmentCompat() {
 
     private lateinit var navController: NavController
-    private var prefMaxBeaconDistanceKm: EditTextPreference? = null
-    private var prefMaxBeaconDistanceMi: EditTextPreference? = null
-    private val unitService = UnitService()
-    private val formatService by lazy { FormatService(requireContext()) }
-    private val intervalometer = Intervalometer {
-        updatePreferenceStates()
-    }
 
-    private lateinit var prefs: UserPreferences
+    @Inject
+    lateinit var prefs: UserPreferences
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = findNavController()
     }
 
-    private fun bindPreferences() {
-        prefMaxBeaconDistanceKm = editText(R.string.pref_max_beacon_distance)
-        prefMaxBeaconDistanceMi = editText(R.string.pref_max_beacon_distance_miles)
-    }
-
-
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey)
         val sensorChecker = SensorChecker(requireContext())
-        val userPrefs = UserPreferences(requireContext())
-        prefs = userPrefs
-        bindPreferences()
-        updatePreferenceStates()
         if (!sensorChecker.hasBarometer()) {
             preferenceScreen.removePreferenceRecursively(getString(R.string.pref_weather_category))
             preferenceScreen.removePreferenceRecursively(getString(R.string.pref_barometer_calibration))
@@ -95,7 +77,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     InputType.TYPE_CLASS_NUMBER.or(InputType.TYPE_NUMBER_FLAG_DECIMAL)
             }
 
-        navigateOnClick(preferenceScreen.findPreference(getString(R.string.pref_open_source_licenses)),
+        navigateOnClick(
+            preferenceScreen.findPreference(getString(R.string.pref_open_source_licenses)),
             R.id.action_action_settings_to_licenseFragment
         )
 
@@ -119,16 +102,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
             version
     }
 
-    override fun onResume() {
-        super.onResume()
-        intervalometer.interval(1000)
-    }
-
-    override fun onPause() {
-        intervalometer.stop()
-        super.onPause()
-    }
-
     private fun navigateOnClick(pref: Preference?, @IdRes action: Int, bundle: Bundle? = null) {
         pref?.setOnPreferenceClickListener {
             navController.navigate(action, bundle)
@@ -140,18 +113,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
         pref?.setOnPreferenceChangeListener { _, _ ->
             activity?.recreate()
             true
-        }
-    }
-
-    private fun updatePreferenceStates() {
-        val distanceUnits = prefs.distanceUnits
-
-        if (distanceUnits == UserPreferences.DistanceUnits.Feet) {
-            prefMaxBeaconDistanceKm?.isVisible = false
-            prefMaxBeaconDistanceMi?.isVisible = true
-        } else {
-            prefMaxBeaconDistanceKm?.isVisible = true
-            prefMaxBeaconDistanceMi?.isVisible = false
         }
     }
 

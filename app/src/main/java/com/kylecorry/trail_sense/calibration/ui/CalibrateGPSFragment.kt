@@ -14,12 +14,14 @@ import com.kylecorry.trailsensecore.infrastructure.sensors.gps.IGPS
 import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trailsensecore.infrastructure.system.IntentUtils
 import com.kylecorry.trailsensecore.infrastructure.time.Throttle
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class CalibrateGPSFragment : PreferenceFragmentCompat() {
 
     private lateinit var prefs: UserPreferences
-    private lateinit var sensorService: SensorService
+    @Inject lateinit var sensorService: SensorService
     private val throttle = Throttle(20)
 
     private lateinit var locationTxt: Preference
@@ -37,7 +39,6 @@ class CalibrateGPSFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.gps_calibration, rootKey)
 
         prefs = UserPreferences(requireContext())
-        sensorService = SensorService(requireContext())
 
         gps = sensorService.getGPS()
         realGps = GPS(requireContext().applicationContext)

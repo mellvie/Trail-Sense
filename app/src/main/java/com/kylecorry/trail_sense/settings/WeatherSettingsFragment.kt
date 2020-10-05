@@ -8,7 +8,10 @@ import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.weather.infrastructure.WeatherUpdateScheduler
 import com.kylecorry.trailsensecore.domain.units.PressureUnits
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class WeatherSettingsFragment : PreferenceFragmentCompat() {
 
     private var prefMonitorWeather: SwitchPreferenceCompat? = null
@@ -18,7 +21,7 @@ class WeatherSettingsFragment : PreferenceFragmentCompat() {
     private var prefShowPressureInNotification: SwitchPreferenceCompat? = null
     private var prefStormAlerts: SwitchPreferenceCompat? = null
 
-    private lateinit var prefs: UserPreferences
+    @Inject lateinit var prefs: UserPreferences
 
     private fun bindPreferences() {
         prefMonitorWeather = switch(R.string.pref_monitor_weather)
@@ -32,8 +35,6 @@ class WeatherSettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.weather_preferences, rootKey)
-        val userPrefs = UserPreferences(requireContext())
-        prefs = userPrefs
         bindPreferences()
 
         prefMonitorWeather?.setOnPreferenceClickListener {
@@ -63,11 +64,11 @@ class WeatherSettingsFragment : PreferenceFragmentCompat() {
 
         val forecastSensitivity =
             preferenceScreen.findPreference<ListPreference>(getString(R.string.pref_forecast_sensitivity))
-        forecastSensitivity?.setEntries(getForecastSensitivityArray(userPrefs.pressureUnits))
+        forecastSensitivity?.setEntries(getForecastSensitivityArray(prefs.pressureUnits))
 
         val stormSensitivity =
             preferenceScreen.findPreference<ListPreference>(getString(R.string.pref_storm_alert_sensitivity))
-        stormSensitivity?.setEntries(getStormSensitivityArray(userPrefs.pressureUnits))
+        stormSensitivity?.setEntries(getStormSensitivityArray(prefs.pressureUnits))
     }
 
     private fun restartWeatherMonitor() {

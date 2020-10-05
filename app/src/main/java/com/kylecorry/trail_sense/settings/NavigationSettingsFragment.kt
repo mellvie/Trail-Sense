@@ -10,15 +10,18 @@ import com.kylecorry.trail_sense.shared.FormatService
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trailsensecore.domain.units.DistanceUnits
 import com.kylecorry.trailsensecore.domain.units.UnitService
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class NavigationSettingsFragment : PreferenceFragmentCompat() {
 
     private var prefMaxBeaconDistanceKm: EditTextPreference? = null
     private var prefMaxBeaconDistanceMi: EditTextPreference? = null
     private val unitService = UnitService()
-    private val formatService by lazy { FormatService(requireContext()) }
 
-    private lateinit var prefs: UserPreferences
+    @Inject lateinit var formatService: FormatService
+    @Inject lateinit var prefs: UserPreferences
 
     private fun bindPreferences() {
         prefMaxBeaconDistanceKm = editText(R.string.pref_max_beacon_distance)
@@ -28,8 +31,6 @@ class NavigationSettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.navigation_preferences, rootKey)
-        val userPrefs = UserPreferences(requireContext())
-        prefs = userPrefs
         bindPreferences()
 
         val distanceUnits = prefs.distanceUnits

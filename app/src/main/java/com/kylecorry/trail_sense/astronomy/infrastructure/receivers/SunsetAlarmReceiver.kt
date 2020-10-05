@@ -22,16 +22,19 @@ import com.kylecorry.trailsensecore.infrastructure.sensors.gps.IGPS
 import com.kylecorry.trailsensecore.infrastructure.system.AlarmUtils
 import com.kylecorry.trailsensecore.infrastructure.system.PackageUtils
 import com.kylecorry.trailsensecore.infrastructure.time.Intervalometer
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SunsetAlarmReceiver : BroadcastReceiver() {
 
     private lateinit var context: Context
     private lateinit var gps: IGPS
-    private lateinit var sensorService: SensorService
+    @Inject lateinit var sensorService: SensorService
     private val gpsTimeout = Intervalometer {
         if (!hasLocation) {
             hasLocation = true
@@ -58,7 +61,6 @@ class SunsetAlarmReceiver : BroadcastReceiver() {
             return
         }
 
-        sensorService = SensorService(this.context)
         gps = sensorService.getGPS()
 
         gpsTimeout.once(Duration.ofSeconds(10))

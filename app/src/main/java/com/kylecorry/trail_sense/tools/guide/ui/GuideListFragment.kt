@@ -15,8 +15,6 @@ import com.kylecorry.trailsensecore.infrastructure.system.UiUtils
 
 class GuideListFragment : PreferenceFragmentCompat() {
 
-    private val guideService by lazy { UserGuideService(requireContext()) }
-
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.user_guide, rootKey)
         bindPreferences()

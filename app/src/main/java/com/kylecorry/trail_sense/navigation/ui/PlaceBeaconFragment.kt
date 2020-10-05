@@ -17,22 +17,32 @@ import com.kylecorry.trail_sense.navigation.infrastructure.database.BeaconRepo
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trailsensecore.domain.geo.Coordinate
 import com.kylecorry.trail_sense.shared.roundPlaces
-import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trailsensecore.domain.navigation.Beacon
 import com.kylecorry.trailsensecore.domain.navigation.BeaconGroup
+import com.kylecorry.trailsensecore.infrastructure.sensors.altimeter.IAltimeter
+import com.kylecorry.trailsensecore.infrastructure.sensors.gps.IGPS
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class PlaceBeaconFragment : Fragment() {
 
-    private val beaconRepo by lazy { BeaconRepo.getInstance(requireContext()) }
-    private val gps by lazy { sensorService.getGPS() }
+    @Inject
+    lateinit var beaconRepo: BeaconRepo
+    @Inject
+    lateinit var altimeter: IAltimeter
+    @Inject
+    lateinit var gps: IGPS
+    @Inject
+    lateinit var prefs: UserPreferences
+
     private lateinit var navController: NavController
 
     private var _binding: FragmentCreateBeaconBinding? = null
     private val binding get() = _binding!!
-    private val altimeter by lazy { sensorService.getAltimeter() }
+
 
     private lateinit var units: UserPreferences.DistanceUnits
-    private val sensorService by lazy { SensorService(requireContext()) }
 
     private lateinit var groups: List<BeaconGroup>
 
@@ -75,7 +85,6 @@ class PlaceBeaconFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val prefs = UserPreferences(requireContext())
         units = prefs.distanceUnits
 
         navController = findNavController()

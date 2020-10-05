@@ -10,14 +10,13 @@ import com.kylecorry.trailsensecore.infrastructure.system.UiUtils
 
 class BeaconGroupListItem(
     private val view: View,
-    private val group: BeaconGroup
+    private val group: BeaconGroup,
+    private val repo: BeaconRepo
 ) {
 
     var onOpen: () -> Unit = {}
     var onDeleted: () -> Unit = {}
     var onEdit: () -> Unit = {}
-
-    private val repo by lazy { BeaconRepo.getInstance(view.context) }
 
     init {
         val binding = ListItemBeaconBinding.bind(view)
