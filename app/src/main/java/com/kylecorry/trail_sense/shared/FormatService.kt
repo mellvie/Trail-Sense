@@ -10,9 +10,13 @@ import com.kylecorry.trail_sense.weather.domain.PressureUnitUtils
 import com.kylecorry.trailsensecore.domain.units.DistanceUnits
 import com.kylecorry.trailsensecore.domain.units.PressureUnits
 import com.kylecorry.trailsensecore.domain.units.TemperatureUnits
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.Duration
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class FormatService(private val context: Context) {
+@Singleton
+class FormatService @Inject constructor(@ApplicationContext private val context: Context) {
 
     private val prefs by lazy { UserPreferences(context) }
 
