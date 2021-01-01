@@ -8,13 +8,21 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.databinding.FragmentThermometerHygrometerBinding
 import com.kylecorry.trail_sense.shared.*
 import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trailsensecore.infrastructure.system.UiUtils
 import com.kylecorry.trail_sense.weather.domain.WeatherService
+import com.kylecorry.trailsensecore.domain.astronomy.AstronomyService
+import com.kylecorry.trailsensecore.domain.geo.Coordinate
 import com.kylecorry.trailsensecore.domain.weather.HeatAlert
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 class ThermometerFragment : Fragment() {
 
@@ -62,12 +70,35 @@ class ThermometerFragment : Fragment() {
         super.onResume()
         thermometer.start(this::onTemperatureUpdate)
         hygrometer.start(this::onHumidityUpdate)
+        heatUp()
+        heatUp()
+        heatUp()
+        heatUp()
+        heatUp()
+        heatUp()
     }
 
     override fun onPause() {
         super.onPause()
         thermometer.stop(this::onTemperatureUpdate)
         hygrometer.stop(this::onHumidityUpdate)
+    }
+
+    private suspend fun thermalLoad(){
+        coroutineScope {
+            val astronomyService = com.kylecorry.trail_sense.astronomy.domain.AstronomyService()
+            while (true) {
+                astronomyService.getMoonAltitudes(Coordinate.zero, LocalDate.now())
+            }
+        }
+    }
+
+    private fun heatUp(){
+        lifecycleScope.launch {
+            withContext(Dispatchers.Default) {
+                thermalLoad()
+            }
+        }
     }
 
     private fun updateUI() {
