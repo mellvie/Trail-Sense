@@ -5,24 +5,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.databinding.FragmentThermometerHygrometerBinding
-import com.kylecorry.trail_sense.shared.*
+import com.kylecorry.trail_sense.shared.FormatService
+import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.sensors.SensorService
-import com.kylecorry.trailsensecore.infrastructure.system.UiUtils
 import com.kylecorry.trail_sense.weather.domain.WeatherService
-import com.kylecorry.trailsensecore.domain.astronomy.AstronomyService
-import com.kylecorry.trailsensecore.domain.geo.Coordinate
 import com.kylecorry.trailsensecore.domain.weather.HeatAlert
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
+import com.kylecorry.trailsensecore.infrastructure.system.UiUtils
+import kotlin.math.pow
+import kotlin.math.sin
 
 class ThermometerFragment : Fragment() {
 
@@ -43,6 +36,8 @@ class ThermometerFragment : Fragment() {
             prefs.weather.seaLevelFactorInTemp
         )
     }
+
+    private val threads = mutableListOf<Thread>()
 
     private var heatAlertTitle = ""
     private var heatAlertContent = ""
@@ -71,33 +66,33 @@ class ThermometerFragment : Fragment() {
         thermometer.start(this::onTemperatureUpdate)
         hygrometer.start(this::onHumidityUpdate)
         heatUp()
-        heatUp()
-        heatUp()
-        heatUp()
-        heatUp()
-        heatUp()
     }
 
     override fun onPause() {
         super.onPause()
         thermometer.stop(this::onTemperatureUpdate)
         hygrometer.stop(this::onHumidityUpdate)
-    }
-
-    private suspend fun thermalLoad(){
-        coroutineScope {
-            val astronomyService = com.kylecorry.trail_sense.astronomy.domain.AstronomyService()
-            while (true) {
-                astronomyService.getMoonAltitudes(Coordinate.zero, LocalDate.now())
-            }
+        threads.forEach {
+            it.interrupt()
         }
     }
 
     private fun heatUp(){
-        lifecycleScope.launch {
-            withContext(Dispatchers.Default) {
-                thermalLoad()
+        val cores = Runtime.getRuntime().availableProcessors()
+        for (i in 0 until cores){
+            val thread = Thread {
+                while(true){
+                    generateHeat()
+                }
             }
+            thread.start()
+            threads.add(thread)
+        }
+    }
+
+    private fun generateHeat() {
+        while (true) {
+            sin(Math.random()).pow(0.23749823)
         }
     }
 
