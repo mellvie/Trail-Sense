@@ -62,44 +62,47 @@ class ToolsFragment : Fragment() {
 
     private fun createToolTiles() {
 
-        val content = listOf<Pair<String, Int>>(
-            "Signaling" to -1,
-            "Flashlight" to R.drawable.flashlight,
-            "Whistle" to R.drawable.ic_tool_whistle,
-            "Distance" to -1,
-            "Ruler" to R.drawable.ruler,
-            "Converter" to R.drawable.ic_tool_distance_convert,
-            "Cliff Height" to R.drawable.ic_tool_cliff_height,
-            "Lightning Strike" to R.drawable.ic_tool_lightning,
-            "Depth" to R.drawable.ic_depth,
-            "Location" to -1,
-            "Maps" to R.drawable.maps,
-            "Backtrack" to R.drawable.ic_tool_backtrack,
-            "Triangulate" to R.drawable.ic_tool_triangulate,
-            "Convert" to R.drawable.ic_tool_distance_convert,
-            "Angles" to -1,
-            "Inclinometer" to R.drawable.inclinometer,
-            "Level" to R.drawable.level,
-            "Time" to -1,
-            "Clock" to R.drawable.ic_tool_clock,
-            "Boil" to R.drawable.ic_tool_boil,
-            "Power" to -1,
-            "Battery" to R.drawable.ic_tool_battery,
-            "Solar Panel" to R.drawable.ic_tool_solar_panel,
-            "Other" to -1,
-            "Metal Detector" to R.drawable.ic_tool_metal_detector,
-            "Weather" to R.drawable.ic_weather,
-            "Health" to R.drawable.ic_tool_health,
-            "White Noise" to R.drawable.ic_tool_white_noise,
-            "Notes" to R.drawable.ic_tool_notes,
-            "Inventory" to R.drawable.ic_inventory,
-            "User Guide" to R.drawable.ic_user_guide,
+
+
+
+        val content = listOf(
+            Tool("Signaling", -1, -1),
+            Tool("Flashlight", R.drawable.flashlight, R.id.action_action_experimental_tools_to_fragmentToolFlashlight),
+            Tool("Whistle", R.drawable.ic_tool_whistle, R.id.action_action_experimental_tools_to_toolWhistleFragment),
+            Tool("Distance", -1, -1),
+            Tool("Ruler", R.drawable.ruler, R.id.action_action_experimental_tools_to_rulerFragment),
+            Tool("Converter", R.drawable.ic_tool_distance_convert, R.id.action_action_experimental_tools_to_fragmentDistanceConverter),
+            Tool("Cliff Height", R.drawable.ic_tool_cliff_height, R.id.action_action_experimental_tools_to_toolCliffHeightFragment),
+            Tool("Lightning Strike", R.drawable.ic_tool_lightning, R.id.action_action_experimental_tools_to_fragmentToolLightning),
+            Tool("Depth", R.drawable.ic_depth, R.id.action_action_experimental_tools_to_toolDepthFragment),
+            Tool("Location", -1, -1),
+            Tool("Maps", R.drawable.maps, -1),
+            Tool("Backtrack", R.drawable.ic_tool_backtrack, R.id.action_action_experimental_tools_to_fragmentBacktrack),
+            Tool("Triangulate", R.drawable.ic_tool_triangulate, R.id.action_action_experimental_tools_to_fragmentToolTriangulate),
+            Tool("Convert", R.drawable.ic_tool_distance_convert, R.id.action_action_experimental_tools_to_fragmentToolCoordinateConvert),
+            Tool("Angles", -1, -1),
+            Tool("Inclinometer", R.drawable.inclinometer, R.id.action_toolsFragment_to_inclinometerFragment),
+            Tool("Level", R.drawable.level, R.id.action_action_experimental_tools_to_levelFragment),
+            Tool("Time", -1, -1),
+            Tool("Clock", R.drawable.ic_tool_clock, R.id.action_action_experimental_tools_to_toolClockFragment),
+            Tool("Boil", R.drawable.ic_tool_boil, R.id.action_action_experimental_tools_to_waterPurificationFragment),
+            Tool("Power", -1, -1),
+            Tool("Battery", R.drawable.ic_tool_battery, R.id.action_action_experimental_tools_to_fragmentToolBattery),
+            Tool("Solar Panel", R.drawable.ic_tool_solar_panel, R.id.action_action_experimental_tools_to_fragmentToolSolarPanel),
+            Tool("Other", -1, -1),
+            Tool("Metal Detector", R.drawable.ic_tool_metal_detector, R.id.action_action_experimental_tools_to_fragmentToolMetalDetector),
+            Tool("Weather", R.drawable.ic_weather, -1),
+            Tool("Health", R.drawable.ic_tool_health, -1),
+            Tool("White Noise", R.drawable.ic_tool_white_noise, R.id.action_action_experimental_tools_to_fragmentToolWhiteNoise),
+            Tool("Notes", R.drawable.ic_tool_notes, R.id.action_action_experimental_tools_to_fragmentToolNotes),
+            Tool("Inventory", R.drawable.ic_inventory, R.id.action_action_experimental_tools_to_action_inventory),
+            Tool("User Guide", R.drawable.ic_user_guide, R.id.action_action_experimental_tools_to_guideListFragment),
             )
 
         for (tool in content){
-            if (tool.second == -1){
+            if (tool.icon == -1){
                 val text = TextView(requireContext())
-                text.text = tool.first
+                text.text = tool.name
                 text.setTextColor(UiUtils.color(requireContext(), R.color.colorPrimary))
                 text.layoutParams = GridLayout.LayoutParams().also {
                     it.columnSpec = GridLayout.spec(0, 3)
@@ -107,9 +110,22 @@ class ToolsFragment : Fragment() {
                 binding.toolGrid.addView(text)
             } else {
                 val toolTile = TileButton(requireContext(), null)
-                toolTile.setImageResource(tool.second)
-                toolTile.setText(tool.first)
+                toolTile.setImageResource(tool.icon)
+                toolTile.setText(tool.name)
                 toolTile.setTextSize(12f)
+                toolTile.setOnClickListener {
+                    if (tool.action == -1){
+                        when (tool.icon) {
+                            R.drawable.maps -> TrailSenseMaps.open(requireContext())
+                            R.drawable.ic_tool_health -> HealthSense.open(requireContext())
+                            R.drawable.ic_weather -> NWSWeather.open(requireContext())
+                        }
+                    } else {
+                        toolTile.setState(true)
+
+                        navController.navigate(tool.action)
+                    }
+                }
                 toolTile.width = (ViewMeasurementUtils.density(requireContext()) * 110).toInt()
                 toolTile.height = (ViewMeasurementUtils.density(requireContext()) * 110).toInt()
                 binding.toolGrid.addView(toolTile)
@@ -247,5 +263,7 @@ class ToolsFragment : Fragment() {
 //            R.id.action_action_experimental_tools_to_fragmentToolFlashlight
 //        )
     }
+
+    data class Tool(val name: String, val icon: Int, val action: Int)
 
 }
