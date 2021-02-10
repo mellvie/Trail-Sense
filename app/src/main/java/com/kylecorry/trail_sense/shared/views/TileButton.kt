@@ -39,6 +39,30 @@ class TileButton(context: Context, attrs: AttributeSet?) : ConstraintLayout(cont
         setState(false)
     }
 
+    fun setWidth(pixels: Int){
+        icon.updateLayoutParams {
+            this.width = pixels
+        }
+    }
+
+    fun setHeight(pixels: Int){
+        icon.updateLayoutParams {
+            this.height = pixels
+        }
+    }
+
+    fun setLines(lines: Int){
+        textView.maxLines = lines
+    }
+
+    fun setPadding(padding: Int){
+        icon.setPadding(padding)
+    }
+
+    fun setTextSize(sp: Float){
+        textView.textSize = sp
+    }
+
     fun setImageResource(@DrawableRes resId: Int) {
         icon.setImageResource(resId)
         setState(isOn)
