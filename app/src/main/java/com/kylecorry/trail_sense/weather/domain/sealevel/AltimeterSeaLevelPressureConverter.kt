@@ -10,7 +10,8 @@ internal class AltimeterSeaLevelPressureConverter(
 
     override fun convert(
         readings: List<PressureAltitudeReading>,
-        interpolateAltitudeChanges: Boolean
+        interpolateAltitudeChanges: Boolean,
+        errors: List<Float?>
     ): List<PressureReading> {
         val altitudeHistory = altitudeCalculator.convert(readings, interpolateAltitudeChanges)
 

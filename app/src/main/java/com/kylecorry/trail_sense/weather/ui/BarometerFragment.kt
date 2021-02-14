@@ -60,6 +60,7 @@ class BarometerFragment : Fragment() {
     private var pressureSetpoint: PressureAltitudeReading? = null
 
     private var readingHistory: List<PressureAltitudeReading> = listOf()
+    private var altitudeErrors: List<Float?> = listOf()
 
     private var valueSelectedTime = 0L
 
@@ -144,6 +145,7 @@ class BarometerFragment : Fragment() {
 
         pressureRepo.getPressures().observe(viewLifecycleOwner) {
             readingHistory = it.map { it.toPressureAltitudeReading() }.sortedBy { it.time }
+            altitudeErrors = it.sortedBy { it.time }.map { it.altitudeAccuracy }
         }
 
         barometer.asLiveData().observe(viewLifecycleOwner, { update() })
@@ -247,7 +249,8 @@ class BarometerFragment : Fragment() {
         }
         return weatherService.convertToSeaLevel(
             readings, prefs.weather.requireDwell, prefs.weather.maxNonTravellingAltitudeChange,
-            prefs.weather.maxNonTravellingPressureChange
+            prefs.weather.maxNonTravellingPressureChange,
+            altitudeErrors
         )
     }
 

@@ -5,8 +5,15 @@ import com.kylecorry.trailsensecore.domain.weather.PressureAltitudeReading
 import java.time.Duration
 import kotlin.math.abs
 
-internal class DwellAltitudeCalculator(private val dwellThreshold: Duration, private val changeThreshold: Float) : IAltitudeCalculator {
-    override fun convert(readings: List<PressureAltitudeReading>, interpolateAltitudeChanges: Boolean): List<AltitudeReading> {
+internal class DwellAltitudeCalculator(
+    private val dwellThreshold: Duration,
+    private val changeThreshold: Float
+) : IAltitudeCalculator {
+    override fun convert(
+        readings: List<PressureAltitudeReading>,
+        interpolateAltitudeChanges: Boolean,
+        errors: List<Float?>
+    ): List<AltitudeReading> {
 
         if (readings.size <= 1) {
             return readings.map { AltitudeReading(it.time, it.altitude) }

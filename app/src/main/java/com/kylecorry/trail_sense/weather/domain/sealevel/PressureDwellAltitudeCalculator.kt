@@ -12,7 +12,8 @@ internal class PressureDwellAltitudeCalculator(
 ) : IAltitudeCalculator {
     override fun convert(
         readings: List<PressureAltitudeReading>,
-        interpolateAltitudeChanges: Boolean
+        interpolateAltitudeChanges: Boolean,
+        errors: List<Float?>
     ): List<AltitudeReading> {
 
         if (readings.size <= 1) {
