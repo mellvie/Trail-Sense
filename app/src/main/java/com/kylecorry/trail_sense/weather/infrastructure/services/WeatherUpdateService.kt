@@ -126,12 +126,16 @@ class WeatherUpdateService : Service() {
     private fun sendWeatherNotification() {
         runBlocking {
             withContext(Dispatchers.IO) {
+                val rawReadings =  pressureRepo.getPressuresSync()
+                val pressures = rawReadings.map { it.toPressureAltitudeReading() }
+                    .sortedBy { it.time }
+                val errors = rawReadings.sortedBy { it.time }.map { it.altitudeAccuracy }
                 val readings = weatherService.convertToSeaLevel(
-                    pressureRepo.getPressuresSync().map { it.toPressureAltitudeReading() }
-                        .sortedBy { it.time },
+                    pressures,
                     userPrefs.weather.requireDwell,
                     userPrefs.weather.maxNonTravellingAltitudeChange,
-                    userPrefs.weather.maxNonTravellingPressureChange
+                    userPrefs.weather.maxNonTravellingPressureChange,
+                    errors
                 )
                 val forecast = weatherService.getHourlyWeather(readings)
 
@@ -235,16 +239,17 @@ class WeatherUpdateService : Service() {
                     cache.getBoolean(applicationContext.getString(R.string.pref_just_sent_alert))
                         ?: false
 
-
-                val readings =
-                    pressureRepo.getPressuresSync().map { it.toPressureAltitudeReading() }
+                val rawReadings =  pressureRepo.getPressuresSync()
+                val readings = rawReadings.map { it.toPressureAltitudeReading() }
                         .sortedBy { it.time }
+                val errors = rawReadings.sortedBy { it.time }.map { it.altitudeAccuracy }
                 val forecast = weatherService.getHourlyWeather(
                     weatherService.convertToSeaLevel(
                         readings,
                         userPrefs.weather.requireDwell,
                         userPrefs.weather.maxNonTravellingAltitudeChange,
-                        userPrefs.weather.maxNonTravellingPressureChange
+                        userPrefs.weather.maxNonTravellingPressureChange,
+                        errors
                     )
                 )
 

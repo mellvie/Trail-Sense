@@ -254,19 +254,12 @@ class CalibrateAltimeterFragment : PreferenceFragmentCompat() {
 
     private fun onSeaLevelPressureOverrideCallback(): Boolean {
         val altitude = prefs.altitudeOverride
-        val seaLevel = WeatherService(0f, 0f, 0f).convertToSeaLevel(
-            listOf(
-                PressureAltitudeReading(
-                    Instant.now(),
-                    barometer.pressure,
-                    altitude,
-                    16f
-                )
-            ),
-            prefs.weather.requireDwell,
-            prefs.weather.maxNonTravellingAltitudeChange,
-            prefs.weather.maxNonTravellingPressureChange
-        ).first()
+        val seaLevel = PressureAltitudeReading(
+            Instant.now(),
+            barometer.pressure,
+            altitude,
+            16f
+        ).seaLevel()
         prefs.seaLevelPressureOverride = seaLevel.value
         return prefs.altimeterMode == UserPreferences.AltimeterMode.Barometer
     }
