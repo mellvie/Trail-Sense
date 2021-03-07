@@ -99,7 +99,7 @@ class SensorService(ctx: Context) {
             context,
             smoothing,
             useTrueNorth
-        ) else VectorCompass(
+        ) else TestCompass(
             context, smoothing, useTrueNorth
         )
     }
