@@ -17,6 +17,7 @@ import com.kylecorry.trailsensecore.domain.math.cosDegrees
 import com.kylecorry.trailsensecore.domain.math.deltaAngle
 import com.kylecorry.trailsensecore.domain.math.sinDegrees
 import com.kylecorry.trailsensecore.domain.math.wrap
+import com.kylecorry.trailsensecore.domain.navigation.Beacon
 import com.kylecorry.trailsensecore.domain.pixels.PixelCoordinate
 import com.kylecorry.trailsensecore.domain.pixels.PixelLine
 import com.kylecorry.trailsensecore.domain.pixels.PixelLineStyle
@@ -247,6 +248,9 @@ class RadarCompassView : View, ICompassView {
             }
         }
         invalidate()
+    }
+
+    fun setNearby(beacons: List<Beacon>){
     }
 
     override fun setDestination(bearing: Float?, @ColorInt color: Int?) {

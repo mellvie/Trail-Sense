@@ -65,6 +65,8 @@
         android:layout_width="@dimen/circular_display_size"
         android:layout_height="@dimen/circular_display_size"
         android:layout_marginTop="32dp"
+        android:visibility="invisible"
+        tools:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/location"/>
@@ -83,6 +85,7 @@
         android:id="@+id/linear_compass"
         android:layout_width="match_parent"
         android:layout_height="100dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/round_compass"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

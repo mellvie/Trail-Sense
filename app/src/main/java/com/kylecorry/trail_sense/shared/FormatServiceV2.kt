@@ -182,8 +182,8 @@ class FormatServiceV2(private val context: Context) {
     }
 
     // TODO: Rewrite this
-    fun formatSpeed(metersPerSecond: Float): String {
-        val distanceUnits = prefs.distanceUnits
+    fun formatSpeed(metersPerSecond: Float, baseUnits: UserPreferences.DistanceUnits? = null): String {
+        val distanceUnits = baseUnits ?: prefs.distanceUnits
         val convertedSpeed = LocationMath.convertToBaseSpeed(metersPerSecond, distanceUnits)
         return if (distanceUnits == UserPreferences.DistanceUnits.Meters) {
             context.getString(R.string.kilometers_per_hour_format, convertedSpeed)
@@ -191,6 +191,7 @@ class FormatServiceV2(private val context: Context) {
             context.getString(R.string.miles_per_hour_format, convertedSpeed)
         }
     }
+
 
     fun formatLocation(location: Coordinate, format: CoordinateFormat? = null): String {
         val formatted = when (format ?: prefs.navigation.coordinateFormat) {
