@@ -6,34 +6,23 @@
     android:layout_height="match_parent"
     tools:context=".weather.ui.WeatherFragment">
 
-
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/chart"
-        android:layout_width="0dp"
-        android:layout_height="250dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/pressure_marker"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-    </com.github.mikephil.charting.charts.LineChart>
-
     <TextView
-        android:id="@+id/pressure"
-        android:layout_width="wrap_content"
+        android:id="@+id/forecast_now"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-        android:textSize="32sp"
+        android:layout_marginStart="64dp"
         android:layout_marginTop="@dimen/default_top_margin"
+        android:layout_marginEnd="64dp"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="1020 hPa" />
+        tools:text="Worsening soon" />
 
     <TextView
-        android:id="@+id/tendency_amount"
+        android:id="@+id/forecast_today"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -41,8 +30,54 @@
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pressure"
-        tools:text="0 hPa / 3h" />
+        app:layout_constraintTop_toBottomOf="@+id/forecast_now"
+        tools:text="Worsening later" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/forecast_today">
+
+        <TextView
+            android:id="@+id/pressure"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:drawablePadding="8dp"
+            android:gravity="center"
+            app:drawableTint="?android:textColorSecondary"
+            app:drawableTopCompat="@drawable/light_rain"
+            tools:text="1000 hPa" />
+
+        <TextView
+            android:id="@+id/temperature"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:drawablePadding="8dp"
+            android:gravity="center"
+            app:drawableTint="?android:textColorSecondary"
+            app:drawableTopCompat="@drawable/thermometer"
+            tools:text="25 C" />
+
+        <TextView
+            android:id="@+id/cloud_cover"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawablePadding="8dp"
+            android:gravity="center"
+            app:drawableTint="?android:textColorSecondary"
+            app:drawableTopCompat="@drawable/cloud"
+            tools:text="25%" />
+
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/weather_right_quick_action"
@@ -64,8 +99,8 @@
         android:id="@+id/weather_left_quick_action"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:clickable="true"
         android:focusable="true"
         android:tint="?android:textColorSecondary"
@@ -76,19 +111,15 @@
         app:rippleColor="@color/colorPrimary"
         app:srcCompat="@drawable/cloudy" />
 
-    <ImageView
-        android:id="@+id/barometer_trend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        android:contentDescription="@string/pressure_tendency_indicator_alt"
-        android:src="@drawable/ic_arrow_up"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/pressure"
-        app:layout_constraintEnd_toStartOf="@+id/pressure"
-        app:layout_constraintTop_toTopOf="@+id/pressure"
-        tools:srcCompat="@drawable/ic_arrow_down"
-        tools:visibility="visible" />
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart"
+        android:layout_width="0dp"
+        android:layout_height="250dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/pressure_marker"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/pressure_history_duration"
@@ -109,57 +140,5 @@
         app:layout_constraintEnd_toEndOf="@+id/chart"
         app:layout_constraintStart_toStartOf="@+id/chart"
         tools:text="999 hPa, 3h ago" />
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/pressure_history_duration"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tendency_amount">
-
-        <ImageView
-            android:id="@+id/weather_now_img"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@drawable/light_rain" />
-
-        <TextView
-            android:id="@+id/weather_now_lbl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/weather_now_img"
-            app:layout_constraintStart_toEndOf="@+id/weather_now_img"
-            app:layout_constraintTop_toTopOf="@+id/weather_now_img"
-            tools:text="@string/pressure_falling" />
-
-        <TextView
-            android:id="@+id/weather_now_prediction_lbl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            app:layout_constraintStart_toStartOf="@+id/weather_now_lbl"
-            app:layout_constraintEnd_toEndOf="@+id/weather_now_lbl"
-            app:layout_constraintTop_toBottomOf="@+id/weather_now_img"
-            tools:text="Prediction: Worsening soon " />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <TextView
-        android:id="@+id/weather_later_lbl"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-        android:textSize="12sp"
-        app:layout_constraintStart_toStartOf="@+id/constraintLayout"
-        app:layout_constraintEnd_toEndOf="@+id/constraintLayout"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
-        tools:text="@string/forecast_worsening" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

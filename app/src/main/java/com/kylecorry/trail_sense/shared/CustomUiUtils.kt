@@ -18,19 +18,28 @@ import androidx.lifecycle.LifecycleOwner
 import com.kylecorry.andromeda.alerts.Alerts
 import com.kylecorry.andromeda.core.sensors.Quality
 import com.kylecorry.andromeda.core.system.Resources
+import com.kylecorry.andromeda.preferences.Preferences
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.sol.units.Distance
 import com.kylecorry.sol.units.DistanceUnits
-import com.kylecorry.andromeda.preferences.Preferences
 import com.kylecorry.trail_sense.R
-import com.kylecorry.trail_sense.shared.views.*
 import com.kylecorry.trail_sense.shared.beacons.Beacon
 import com.kylecorry.trail_sense.shared.beacons.BeaconGroup
+import com.kylecorry.trail_sense.shared.views.*
 import java.time.Duration
 
 object CustomUiUtils {
 
     fun setButtonState(button: ImageButton, state: Boolean) {
+        setButtonState(
+            button,
+            state,
+            Resources.color(button.context, R.color.colorPrimary),
+            Resources.color(button.context, R.color.colorSecondary)
+        )
+    }
+
+    fun setButtonState(button: TextView, state: Boolean) {
         setButtonState(
             button,
             state,
@@ -50,6 +59,32 @@ object CustomUiUtils {
             button.backgroundTintList = ColorStateList.valueOf(primaryColor)
         } else {
             setImageColor(button.drawable, Resources.androidTextColorSecondary(button.context))
+            button.backgroundTintList =
+                ColorStateList.valueOf(Resources.androidBackgroundColorSecondary(button.context))
+        }
+    }
+
+    private fun setButtonState(
+        button: TextView,
+        isOn: Boolean,
+        @ColorInt primaryColor: Int,
+        @ColorInt secondaryColor: Int
+    ) {
+        if (isOn) {
+            for (drawable in button.compoundDrawables) {
+                if (drawable != null) {
+                    setImageColor(drawable, secondaryColor)
+                }
+            }
+            button.setTextColor(secondaryColor)
+            button.backgroundTintList = ColorStateList.valueOf(primaryColor)
+        } else {
+            for (drawable in button.compoundDrawables) {
+                if (drawable != null) {
+                    setImageColor(drawable, Resources.androidTextColorSecondary(button.context))
+                }
+            }
+            button.setTextColor(Resources.androidTextColorSecondary(button.context))
             button.backgroundTintList =
                 ColorStateList.valueOf(Resources.androidBackgroundColorSecondary(button.context))
         }
