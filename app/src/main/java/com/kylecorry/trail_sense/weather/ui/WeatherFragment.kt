@@ -16,6 +16,7 @@ import com.kylecorry.sol.science.meteorology.PressureTendency
 import com.kylecorry.sol.science.meteorology.forecast.Weather
 import com.kylecorry.sol.units.Pressure
 import com.kylecorry.sol.units.PressureUnits
+import com.kylecorry.sol.units.Reading
 import com.kylecorry.sol.units.Temperature
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.databinding.ActivityWeatherBinding
@@ -72,6 +73,8 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
     private var rightQuickAction: QuickActionButton? = null
 
     private val weatherForecastService by lazy { WeatherContextualService.getInstance(requireContext()) }
+
+    private var observations: List<Reading<WeatherObservation>> = emptyList()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -433,6 +436,8 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
             else -> ""
         }
     }
+
+    // TODO: Get weather chart class for selected field
 
     private fun getQuickActionButton(
         type: QuickActionType,
