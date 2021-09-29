@@ -12,12 +12,10 @@ import com.kylecorry.andromeda.core.sensors.asLiveData
 import com.kylecorry.andromeda.core.time.Throttle
 import com.kylecorry.andromeda.fragments.BoundFragment
 import com.kylecorry.andromeda.location.IGPS
-import com.kylecorry.sol.science.meteorology.PressureTendency
 import com.kylecorry.sol.science.meteorology.forecast.Weather
 import com.kylecorry.sol.units.Pressure
 import com.kylecorry.sol.units.PressureUnits
 import com.kylecorry.sol.units.Reading
-import com.kylecorry.sol.units.Temperature
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.databinding.ActivityWeatherBinding
 import com.kylecorry.trail_sense.quickactions.LowPowerQuickAction
@@ -33,6 +31,8 @@ import com.kylecorry.trail_sense.weather.infrastructure.WeatherUpdateScheduler
 import com.kylecorry.trail_sense.weather.infrastructure.clouds.CloudObservationRepo
 import com.kylecorry.trail_sense.weather.infrastructure.persistence.PressureReadingEntity
 import com.kylecorry.trail_sense.weather.infrastructure.persistence.PressureRepo
+import com.kylecorry.trail_sense.weather.ui.observations.PressureObservationField
+import com.kylecorry.trail_sense.weather.ui.observations.TemperatureObservationField
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -141,6 +141,21 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
         pressureRepo.getPressures().observe(viewLifecycleOwner) {
             readingHistory = it.map { it.toPressureAltitudeReading() }.sortedBy { it.time }
                 .filter { it.time <= Instant.now() }
+
+            val calibrated = weatherService.calibrate(readingHistory, prefs)
+            // TODO: Load observations directly
+            observations = readingHistory.map { reading ->
+                Reading(
+                    WeatherObservation(
+                        calibrated.firstOrNull { it.time == reading.time }?.value,
+                        calibrateTemperature(reading.temperature),
+                        reading.humidity,
+                        null
+                    ),
+                    reading.time
+                )
+            }
+
             lifecycleScope.launch {
                 updateForecast()
             }
@@ -229,12 +244,9 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
         displayChart(readings)
 
         val setpoint = getSetpoint()
-        val tendency = weatherService.getTendency(readings, setpoint)
-        val pressure = getCurrentPressure()
-        displayPressure(pressure, tendency)
+        displayPressure()
 
-        val temperature = getCurrentTemperature()
-        displayTemperature(temperature)
+        displayTemperature()
 
         if (setpoint != null && System.currentTimeMillis() - valueSelectedTime > 2000) {
             displaySetpoint(setpoint)
@@ -340,12 +352,6 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
                 hourly,
                 prefs.weather.useRelativeWeatherPredictions
             )
-//            binding.weatherNowImg.setImageResource(
-//                getWeatherImage(
-//                    hourly,
-//                    PressureReading(Instant.now(), barometer.pressure)
-//                )
-//            )
             binding.forecastToday.text = getLongTermWeatherDescription(daily)
         }
     }
@@ -360,12 +366,16 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
     }
 
     private fun getCurrentTemperature(): Float {
+        return calibrateTemperature(thermometer.temperature)
+    }
+
+    private fun calibrateTemperature(temperature: Float): Float {
         val calibrated1 = prefs.weather.minActualTemperature
         val uncalibrated1 = prefs.weather.minBatteryTemperature
         val calibrated2 = prefs.weather.maxActualTemperature
         val uncalibrated2 = prefs.weather.maxBatteryTemperature
 
-        return calibrated1 + (calibrated2 - calibrated1) * (uncalibrated1 - thermometer.temperature) / (uncalibrated1 - uncalibrated2)
+        return calibrated1 + (calibrated2 - calibrated1) * (uncalibrated1 - temperature) / (uncalibrated1 - uncalibrated2)
     }
 
     private fun getCurrentPressure(): PressureReading {
@@ -384,49 +394,24 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
         }
     }
 
-    private fun displayTemperature(temperature: Float) {
-        val formatted = formatService.formatTemperature(
-            Temperature.celsius(temperature).convertTo(prefs.temperatureUnits)
+    private fun getCurrentObservation(): Reading<WeatherObservation> {
+        return Reading(
+            WeatherObservation(getCurrentPressure().value, getCurrentTemperature(), null, null),
+            Instant.now()
         )
-        binding.temperature.text = formatted
     }
 
-    private fun displayPressure(pressure: PressureReading, tendency: PressureTendency) {
-        val formatted = formatService.formatPressure(
-            Pressure(pressure.value, PressureUnits.Hpa).convertTo(units),
-            Units.getDecimalPlaces(units)
-        )
+    private fun displayTemperature() {
+        val field = TemperatureObservationField(formatService, prefs.temperatureUnits)
+        val observations = observations + listOf(getCurrentObservation())
+        binding.temperature.text = field.getTitle(observations)
+    }
 
-        val formattedTendency = formatService.formatPressure(
-            Pressure(tendency.amount, PressureUnits.Hpa).convertTo(units),
-            Units.getDecimalPlaces(units) + 1
-        )
-
-//        when (tendency.characteristic) {
-//            PressureCharacteristic.Falling, PressureCharacteristic.FallingFast -> {
-//                binding.barometerTrend.setImageResource(R.drawable.ic_arrow_down)
-//                binding.barometerTrend.visibility = View.VISIBLE
-//            }
-//            PressureCharacteristic.Rising, PressureCharacteristic.RisingFast -> {
-//                binding.barometerTrend.setImageResource(R.drawable.ic_arrow_up)
-//                binding.barometerTrend.visibility = View.VISIBLE
-//            }
-//            else -> binding.barometerTrend.visibility = View.INVISIBLE
-//        }
-
+    private fun displayPressure() {
+        val field = PressureObservationField(formatService, weatherService, requireContext(), units)
+        val observations = observations + listOf(getCurrentObservation())
         binding.pressure.text =
-            formatted + "\n" + getString(R.string.pressure_tendency_format_2, formattedTendency)
-    }
-
-    private fun getWeatherImage(weather: Weather, currentPressure: PressureReading): Int {
-        return when (weather) {
-            Weather.ImprovingFast -> if (currentPressure.isLow()) R.drawable.cloudy else R.drawable.sunny
-            Weather.ImprovingSlow -> if (currentPressure.isHigh()) R.drawable.sunny else R.drawable.partially_cloudy
-            Weather.WorseningSlow -> if (currentPressure.isLow()) R.drawable.light_rain else R.drawable.cloudy
-            Weather.WorseningFast -> if (currentPressure.isLow()) R.drawable.heavy_rain else R.drawable.light_rain
-            Weather.Storm -> R.drawable.storm
-            else -> R.drawable.steady
-        }
+            field.getTitle(observations) + "\n" + field.getSubtitle(observations)
     }
 
     private fun getLongTermWeatherDescription(weather: Weather): String {
