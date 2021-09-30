@@ -31,6 +31,7 @@ import com.kylecorry.trail_sense.weather.infrastructure.WeatherUpdateScheduler
 import com.kylecorry.trail_sense.weather.infrastructure.clouds.CloudObservationRepo
 import com.kylecorry.trail_sense.weather.infrastructure.persistence.PressureReadingEntity
 import com.kylecorry.trail_sense.weather.infrastructure.persistence.PressureRepo
+import com.kylecorry.trail_sense.weather.ui.observations.CloudObservationField
 import com.kylecorry.trail_sense.weather.ui.observations.PressureObservationField
 import com.kylecorry.trail_sense.weather.ui.observations.TemperatureObservationField
 import kotlinx.coroutines.Dispatchers
@@ -75,6 +76,9 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
     private val weatherForecastService by lazy { WeatherContextualService.getInstance(requireContext()) }
 
     private var observations: List<Reading<WeatherObservation>> = emptyList()
+
+    // TODO: This is temporary
+    private var cloudObservations: List<Reading<WeatherObservation>> = emptyList()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -162,14 +166,18 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
         }
 
         cloudRepo.getAllLive().observe(viewLifecycleOwner) {
-            val cover = it.maxByOrNull { it.time }?.value?.coverage
-            binding.cloudCover.text = if (cover == null) {
-                "-"
-            } else {
-                formatService.formatPercentage(cover * 100) + "\n" + formatService.formatCloudCover(
-                    cloudService.classifyCloudCover(cover)
-                )
+            cloudObservations = it.map {
+                Reading(WeatherObservation(null, null, null, it.value.coverage), it.time)
             }
+            update()
+//            val cover = it.maxByOrNull { it.time }?.value?.coverage
+//            binding.cloudCover.text = if (cover == null) {
+//                "-"
+//            } else {
+//                formatService.formatPercentage(cover * 100) + "\n" + formatService.formatCloudCover(
+//                    cloudService.classifyCloudCover(cover)
+//                )
+//            }
         }
 
         barometer.asLiveData().observe(viewLifecycleOwner, { update() })
@@ -245,8 +253,8 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
 
         val setpoint = getSetpoint()
         displayPressure()
-
         displayTemperature()
+        displayClouds()
 
         if (setpoint != null && System.currentTimeMillis() - valueSelectedTime > 2000) {
             displaySetpoint(setpoint)
@@ -401,16 +409,27 @@ class WeatherFragment : BoundFragment<ActivityWeatherBinding>() {
         )
     }
 
+    private fun getAllObservations(): List<Reading<WeatherObservation>> {
+        return (observations + cloudObservations + listOf(getCurrentObservation())).sortedBy { it.time }
+    }
+
     private fun displayTemperature() {
         val field = TemperatureObservationField(formatService, prefs.temperatureUnits)
-        val observations = observations + listOf(getCurrentObservation())
+        val observations = getAllObservations()
         binding.temperature.text = field.getTitle(observations)
     }
 
     private fun displayPressure() {
         val field = PressureObservationField(formatService, weatherService, requireContext(), units)
-        val observations = observations + listOf(getCurrentObservation())
+        val observations = getAllObservations()
         binding.pressure.text =
+            field.getTitle(observations) + "\n" + field.getSubtitle(observations)
+    }
+
+    private fun displayClouds() {
+        val field = CloudObservationField(formatService, cloudService)
+        val observations = getAllObservations()
+        binding.cloudCover.text =
             field.getTitle(observations) + "\n" + field.getSubtitle(observations)
     }
 
