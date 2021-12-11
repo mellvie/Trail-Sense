@@ -12,6 +12,7 @@ import com.kylecorry.sol.science.geology.AvalancheRisk
 import com.kylecorry.sol.science.geology.GeologyService
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.databinding.FragmentInclinometerBinding
+import com.kylecorry.trail_sense.shared.CustomUiUtils
 import com.kylecorry.trail_sense.shared.colors.AppColor
 import com.kylecorry.trail_sense.shared.sensors.SensorService
 
@@ -38,6 +39,9 @@ class InclinometerFragment : BoundFragment<FragmentInclinometerBinding>() {
                 slopeIncline = null
             }
         }
+
+        CustomUiUtils.setButtonState(binding.inclinometerLeftQuickAction, false)
+        CustomUiUtils.setButtonState(binding.inclinometerRightQuickAction, false)
 
         inclinometer.asLiveData().observe(viewLifecycleOwner, { onInclinometerUpdate() })
         deviceOrientation.asLiveData().observe(viewLifecycleOwner, { onDeviceOrientationUpdate() })
